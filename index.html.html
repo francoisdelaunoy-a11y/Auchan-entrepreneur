@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Directeur augmenté – Auchan Saint-Martin-Boulogne</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+<style>
+:root{--red:#E0001A;--ink:#262626;--cream:#FFFAEF;--green:#008700;--grey:#6b6b6b;--line:#e6dfd0;--amber:#e08a00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:"Sana Sans",Helvetica,Arial,sans-serif}
+button{font-family:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useMemo} = React;
+const C={red:"#E0001A",ink:"#262626",cream:"#FFFAEF",green:"#008700",grey:"#6b6b6b",line:"#e6dfd0",amber:"#e08a00",white:"#fff"};
+
+/* ---------- petits composants ---------- */
+const Card=({children,style,title,sub})=>(
+  <div style={{background:C.white,border:`1px solid ${C.line}`,borderRadius:14,padding:18,...style}}>
+    {title&&<div style={{marginBottom:12}}><div style={{fontWeight:800,fontSize:15}}>{title}</div>{sub&&<div style={{fontSize:12,color:C.grey,marginTop:2}}>{sub}</div>}</div>}
+    {children}
+  </div>);
+const Kpi=({label,value,delta,good=true})=>(
+  <Card style={{padding:16}}>
+    <div style={{fontSize:12,color:C.grey,textTransform:"uppercase",letterSpacing:.5}}>{label}</div>
+    <div style={{fontSize:28,fontWeight:900,marginTop:4}}>{value}</div>
+    <div style={{fontSize:12,fontWeight:700,color:good?C.green:C.red,marginTop:2}}>{delta}</div>
+  </Card>);
+const Pill=({children,color=C.red,bg})=>(
+  <span style={{display:"inline-block",padding:"3px 10px",borderRadius:99,fontSize:11,fontWeight:800,color,background:bg||color+"18"}}>{children}</span>);
+const Agent=({name,children})=>(
+  <div style={{display:"flex",gap:10,alignItems:"flex-start",background:"#fff3f4",border:`1px solid ${C.red}33`,borderRadius:12,padding:"10px 14px",fontSize:13}}>
+    <div style={{background:C.red,color:"#fff",borderRadius:99,fontSize:10,fontWeight:900,padding:"3px 8px",whiteSpace:"nowrap",marginTop:1}}>AGENT {name}</div>
+    <div>{children}</div>
+  </div>);
+const Btn=({children,onClick,kind="primary",disabled})=>(
+  <button disabled={disabled} onClick={onClick} style={{border:kind==="primary"?"none":`1.5px solid ${C.ink}`,background:kind==="primary"?C.red:"#fff",color:kind==="primary"?"#fff":C.ink,fontWeight:800,fontSize:13,padding:"8px 16px",borderRadius:99,opacity:disabled?.5:1}}>{children}</button>);
+const Bars=({data,color=C.red,h=110,max})=>{
+  const m=max||Math.max(...data.map(d=>d[1]));
+  return(<div style={{display:"flex",alignItems:"flex-end",gap:8,height:h+22}}>
+    {data.map(([l,v,c],i)=>(<div key={i} style={{flex:1,textAlign:"center",fontSize:11,color:C.grey}}>
+      <div style={{height:h,display:"flex",alignItems:"flex-end"}}><div style={{width:"100%",height:`${(v/m)*100}%`,background:c||color,borderRadius:"6px 6px 0 0"}}/></div>{l}</div>))}
+  </div>);};
+
+/* ---------- 1. ACCUEIL ---------- */
+function Accueil({go,localOn}){
+  const [done,setDone]=useState({});
+  const decisions=[
+    {id:"d1",tab:"producteurs",t:"Activer le bloc « Local Boulonnais »",d:"62 % des retours clients du mois demandent plus de produits locaux. 6 producteurs de la zone sont prêts à livrer sous 10 jours.",gain:"+38 k€ de marge / trimestre"},
+    {id:"d2",tab:"supply",t:"Avancer la commande de fruits & légumes de jeudi",d:"Rupture de fraises et de pommes prévue vendredi 9 h (pic météo + promo voisine).",gain:"−4,2 k€ de casse et de rupture"},
+    {id:"d3",tab:"plan",t:"Agrandir le rayon Frais local de 18 m²",d:"Pris sur l'espace Bazar saisonnier (marge/m² la plus faible du magasin).",gain:"+11 % de marge sur la zone"}];
+  return(<div style={{display:"grid",gap:18}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14}}>
+      <Kpi label="CA semaine" value="1,24 M€" delta="▲ 2,8 % vs S-1"/>
+      <Kpi label="Trafic" value="21 400" delta="▲ 1,9 %"/>
+      <Kpi label="Panier moyen" value="46,80 €" delta="▲ 1,40 €"/>
+      <Kpi label="Nutri-Score moyen" value={localOn?"B−":"C+"} delta={localOn?"▲ +0,4 depuis le bloc local":"cible Auchan : B"} good={localOn}/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,3fr) minmax(0,2fr)",gap:18}} className="g2">
+      <Card title="Ce matin, vos agents ont préparé 3 décisions" sub="Vous choisissez. Les agents exécutent.">
+        <div style={{display:"grid",gap:12}}>
+          {decisions.map(x=>(
+            <div key={x.id} style={{border:`1px solid ${C.line}`,borderRadius:12,padding:14,background:done[x.id]?"#eef8ee":"#fff"}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center"}}>
+                <div style={{fontWeight:800}}>{x.t}</div><Pill color={C.green}>{x.gain}</Pill></div>
+              <div style={{fontSize:13,color:C.grey,margin:"6px 0 10px"}}>{x.d}</div>
+              <div style={{display:"flex",gap:8}}>
+                {done[x.id]?<Pill color={C.green}>✓ Décidé – agents en exécution</Pill>:<>
+                <Btn onClick={()=>setDone({...done,[x.id]:1})}>Je valide</Btn>
+                <Btn kind="ghost" onClick={()=>go(x.tab)}>Voir le détail</Btn></>}
+              </div>
+            </div>))}
+        </div>
+      </Card>
+      <div style={{display:"grid",gap:18,alignContent:"start"}}>
+        <Card title="Voix des clients" sub="Synthèse de 1 240 retours (avis, SAV, caisse) – 30 jours">
+          <Bars data={[["Local",62,C.red],["Prix",48,"#c9bfa8"],["Attente caisse",27,"#c9bfa8"],["Bio",24,"#c9bfa8"],["Rayons",15,"#c9bfa8"]]} max={70}/>
+          <div style={{fontSize:12,color:C.grey,marginTop:6}}>% de retours évoquant le thème</div>
+        </Card>
+        <Card style={{background:C.ink,color:"#fff"}}>
+          <div style={{fontSize:12,opacity:.7,textTransform:"uppercase",letterSpacing:.5}}>Temps rendu au directeur</div>
+          <div style={{fontSize:34,fontWeight:900,margin:"4px 0"}}>≈ 14 h / semaine</div>
+          <div style={{fontSize:13,opacity:.85}}>Reporting, commandes de routine, planning, conformité : pris en charge par les agents. Réinvesti en terrain, équipes et clients.</div>
+        </Card>
+      </div>
+    </div>
+  </div>);}
+
+/* ---------- 2. SUPPLY ---------- */
+function Supply(){
+  const [promo,setPromo]=useState(20);
+  const [meteo,setMeteo]=useState(true);
+  const alerts=[
+    {s:"Fraises Gariguette",lvl:"Rupture vendredi 9 h",c:C.red,why:"Livraison plateforme −30 % ; demande +18 % (météo)",act:"Compléter avec producteur local (J+1)"},
+    {s:"Lait demi-écrémé 1 L",lvl:"Retard livraison 6 h",c:C.amber,why:"Retard transport plateforme régionale",act:"Réduire la mise en avant, réassort 14 h"},
+    {s:"Pain frais – boulangerie",lvl:"Stock OK",c:C.green,why:"Prévision dans la cible",act:"Aucune action"},
+    {s:"Œufs plein air",lvl:"Risque samedi",c:C.amber,why:"Stock couvre 1,3 jour",act:"Commande complémentaire proposée"}];
+  const lift=Math.round(promo*0.8*(meteo?1.18:1));
+  const rupt=Math.max(0,Math.round(lift-26));
+  const stock=[["Lun",92],["Mar",81],["Mer",70],["Jeu",58],["Ven",31,C.red],["Sam",64]];
+  return(<div style={{display:"grid",gap:18}}>
+    <Agent name="SUPPLY">J'ai repéré 2 ruptures probables sur 72 h et préparé une action pour chacune. Rien n'est commandé sans votre feu vert.</Agent>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,3fr) minmax(0,2fr)",gap:18}} className="g2">
+      <Card title="Alertes live" sub="Mise à jour toutes les 5 minutes">
+        <div style={{display:"grid",gap:10}}>
+          {alerts.map((a,i)=>(<div key={i} style={{display:"flex",gap:12,alignItems:"center",borderLeft:`5px solid ${a.c}`,background:"#fcfaf5",borderRadius:8,padding:"10px 12px"}}>
+            <div style={{flex:1}}><div style={{fontWeight:800}}>{a.s} <span style={{color:a.c,fontSize:12,marginLeft:6}}>● {a.lvl}</span></div>
+            <div style={{fontSize:12,color:C.grey}}>{a.why}</div></div>
+            <div style={{fontSize:12,fontWeight:700,maxWidth:190,textAlign:"right"}}>→ {a.act}</div></div>))}
+        </div>
+      </Card>
+      <Card title="Niveau de stock fruits & légumes (indice)" sub="Prévision à 6 jours, sans action">
+        <Bars data={stock} h={120} max={100}/>
+      </Card>
+    </div>
+    <Card title="Simulation : « Et si je lance une promotion ? »" sub="Les agents recalculent demande, stock et marge en direct">
+      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:24,alignItems:"center"}} className="g2">
+        <div>
+          <div style={{fontSize:13,fontWeight:700}}>Remise sur les fruits d'été : {promo} %</div>
+          <input type="range" min="0" max="40" value={promo} onChange={e=>setPromo(+e.target.value)} style={{width:"100%",accentColor:C.red}}/>
+          <label style={{fontSize:13,display:"flex",gap:8,marginTop:10}}><input type="checkbox" checked={meteo} onChange={e=>setMeteo(e.target.checked)} style={{accentColor:C.red}}/>Week-end ensoleillé prévu</label>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,textAlign:"center"}}>
+          <div><div style={{fontSize:26,fontWeight:900}}>+{lift} %</div><div style={{fontSize:11,color:C.grey}}>volume attendu</div></div>
+          <div><div style={{fontSize:26,fontWeight:900,color:rupt?C.red:C.green}}>{rupt?`${rupt} j`:"0"}</div><div style={{fontSize:11,color:C.grey}}>{rupt?"de rupture probable":"risque de rupture"}</div></div>
+          <div><div style={{fontSize:26,fontWeight:900,color:promo>30?C.red:C.green}}>{(3.1-promo*0.045).toFixed(1)} pts</div><div style={{fontSize:11,color:C.grey}}>marge rayon</div></div>
+        </div>
+      </div>
+    </Card>
+  </div>);}
+
+/* ---------- 3. PRODUCTEURS ---------- */
+const PRODS=[
+  {n:"Ferme des Dunes (fictif)",c:"Wimereux",p:"Pommes de terre, poireaux",l:["HVE","Local"],ns:"A",d:"il y a 2 j",km:14,marge:"+9 pts"},
+  {n:"Maraîchage du Marais (fictif)",c:"Outreau",p:"Salades, carottes, courges",l:["Bio","Local"],ns:"A",d:"il y a 1 j",km:9,marge:"+11 pts"},
+  {n:"Vergers de la Liane (fictif)",c:"Questrecques",p:"Pommes, poires, jus",l:["HVE","Local"],ns:"B",d:"il y a 4 j",km:21,marge:"+8 pts"},
+  {n:"Fromagerie du Boulonnais (fictif)",c:"Desvres",p:"Fromages, beurre",l:["Local"],ns:"D",d:"il y a 3 j",km:24,marge:"+6 pts"},
+  {n:"Élevage des Hautes Terres (fictif)",c:"Samer",p:"Œufs plein air, volaille",l:["Label Rouge","Local"],ns:"B",d:"il y a 2 j",km:19,marge:"+7 pts"},
+  {n:"Pêcheurs de la Côte d'Opale (fictif)",c:"Boulogne-sur-Mer",p:"Poisson frais",l:["Pêche durable"],ns:"A",d:"hier",km:6,marge:"+5 pts"}];
+const NS={A:"#0b8a3e",B:"#7bb928",C:"#f2c200",D:"#e08a00",E:"#d62a1a"};
+function Producteurs({localOn,setLocalOn}){
+  return(<div style={{display:"grid",gap:18}}>
+    <Agent name="RÉSEAU">Vos clients demandent du local (62 % des retours). J'ai qualifié 6 producteurs à moins de 25 km et chiffré ce que le bloc « Local Boulonnais » rapporte à chacun et au magasin.</Agent>
+    <Card style={{display:"flex",gap:20,alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",background:localOn?"#eef8ee":"#fff"}}>
+      <div><div style={{fontWeight:900,fontSize:18}}>Bloc « Local Boulonnais »</div>
+      <div style={{fontSize:13,color:C.grey,marginTop:2}}>{localOn?"Actif : prix producteur garanti, commandes automatisées, étiquetage Nutri-Score et origine en rayon.":"Un choix du directeur : prix garanti au producteur, assortiment adapté à la clientèle de Saint-Martin."}</div></div>
+      <div style={{display:"flex",gap:24,alignItems:"center"}}>
+        <div style={{textAlign:"center"}}><div style={{fontSize:24,fontWeight:900,color:C.green}}>{localOn?"+38 k€":"–"}</div><div style={{fontSize:11,color:C.grey}}>marge magasin / trimestre</div></div>
+        <div style={{textAlign:"center"}}><div style={{fontSize:24,fontWeight:900,color:C.green}}>{localOn?"+22 %":"–"}</div><div style={{fontSize:11,color:C.grey}}>revenu moyen producteur</div></div>
+        <Btn onClick={()=>setLocalOn(!localOn)}>{localOn?"Désactiver":"Activer le bloc local"}</Btn>
+      </div>
+    </Card>
+    <Card title="Producteurs de la zone" sub="Données illustratives – noms fictifs">
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+        <thead><tr style={{textAlign:"left",color:C.grey,fontSize:11,textTransform:"uppercase"}}>{["Producteur","Produits","Labels","Nutri-Score","Dernière livraison","Distance","Marge vs centrale"].map(h=><th key={h} style={{padding:"6px 8px",borderBottom:`2px solid ${C.ink}`}}>{h}</th>)}</tr></thead>
+        <tbody>{PRODS.map((p,i)=>(<tr key={i} style={{borderBottom:`1px solid ${C.line}`,opacity:localOn?1:.78}}>
+          <td style={{padding:"10px 8px"}}><b>{p.n}</b><div style={{fontSize:11,color:C.grey}}>{p.c}</div></td>
+          <td style={{padding:"10px 8px"}}>{p.p}</td>
+          <td style={{padding:"10px 8px"}}>{p.l.map(x=><span key={x} style={{marginRight:4}}><Pill color={C.green}>{x}</Pill></span>)}</td>
+          <td style={{padding:"10px 8px"}}><span style={{display:"inline-block",width:26,height:26,lineHeight:"26px",textAlign:"center",borderRadius:6,color:"#fff",fontWeight:900,background:NS[p.ns]}}>{p.ns}</span></td>
+          <td style={{padding:"10px 8px"}}>{p.d}</td><td style={{padding:"10px 8px"}}>{p.km} km</td>
+          <td style={{padding:"10px 8px",fontWeight:800,color:C.green}}>{p.marge}</td></tr>))}</tbody>
+      </table></div>
+    </Card>
+  </div>);}
+
+/* ---------- 4. PLAN DE MASSE ---------- */
+const RAYONS=[
+  {id:"fl",n:"Fruits & légumes",x:10,y:10,w:230,h:120,perf:82,m:"31 %",rec:"keep",txt:"Performance forte. Intégrer le bloc local en tête de rayon."},
+  {id:"fr",n:"Frais & crèmerie",x:250,y:10,w:180,h:120,perf:74,m:"27 %",rec:"grow",txt:"Agrandir de 18 m² : forte demande de produits frais locaux, marge/m² en hausse.",gain:"+11 % de marge zone"},
+  {id:"bo",n:"Boucherie / Poissonnerie",x:440,y:10,w:150,h:120,perf:69,m:"29 %",rec:"keep",txt:"Stable. Mettre en avant la marée de la Côte d'Opale."},
+  {id:"ep",n:"Épicerie",x:10,y:140,w:230,h:110,perf:61,m:"22 %",rec:"opt",txt:"Réduire de 12 références à faible rotation, libérer 6 m²."},
+  {id:"bi",n:"Bio & santé",x:250,y:140,w:110,h:110,perf:58,m:"24 %",rec:"grow",txt:"Potentiel sous-exploité : regrouper avec le local.",gain:"+6 % de CA"},
+  {id:"bz",n:"Bazar saisonnier",x:370,y:140,w:130,h:110,perf:29,m:"12 %",rec:"cut",txt:"Marge/m² la plus faible. Supprimer 18 m² au profit du frais local.",gain:"+9 k€ / trimestre"},
+  {id:"te",n:"Textile",x:510,y:140,w:80,h:110,perf:34,m:"14 %",rec:"cut",txt:"Réduire de moitié, passer en gamme courte et saisonnière."},
+  {id:"ca",n:"Caisses & drive piéton",x:10,y:260,w:580,h:50,perf:66,m:"–",rec:"opt",txt:"Attente moyenne 4 min 10 s. Ajouter 1 caisse en pic de 17 h–19 h."}];
+const RC={keep:["Maintenir",C.green],grow:["Agrandir","#0b6bbd"],opt:["Optimiser",C.amber],cut:["Réduire / supprimer",C.red]};
+function Plan(){
+  const [sel,setSel]=useState("fr");
+  const r=RAYONS.find(x=>x.id===sel);
+  const col=p=>p>=70?"#cfe9cf":p>=50?"#fbe6b8":"#f6c4c4";
+  return(<div style={{display:"grid",gap:18}}>
+    <Agent name="MERCHANDISING">J'ai croisé ventes, marge au m², retours clients et flux en magasin. 4 rayons méritent une décision de réaménagement. C'est votre magasin : vous tranchez.</Agent>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,3fr) minmax(0,2fr)",gap:18}} className="g2">
+      <Card title="Plan de masse – Saint-Martin-Boulogne" sub="Couleur = performance (marge au m² + croissance). Cliquez un rayon.">
+        <svg viewBox="0 0 600 320" style={{width:"100%",height:"auto"}}>
+          {RAYONS.map(x=>(<g key={x.id} onClick={()=>setSel(x.id)} style={{cursor:"pointer"}}>
+            <rect x={x.x} y={x.y} width={x.w} height={x.h} rx={10} fill={col(x.perf)} stroke={sel===x.id?C.red:"#bbb"} strokeWidth={sel===x.id?4:1}/>
+            <text x={x.x+x.w/2} y={x.y+x.h/2-4} textAnchor="middle" fontSize="12" fontWeight="800" fill={C.ink}>{x.n.length>22&&x.w<200?x.n.split(" ")[0]:x.n}</text>
+            <text x={x.x+x.w/2} y={x.y+x.h/2+14} textAnchor="middle" fontSize="11" fill={C.grey}>indice {x.perf}</text>
+            <circle cx={x.x+x.w-12} cy={x.y+12} r={6} fill={RC[x.rec][1]}/></g>))}
+        </svg>
+        <div style={{display:"flex",gap:14,flexWrap:"wrap",fontSize:12,marginTop:6}}>
+          {Object.values(RC).map(([l,c])=><span key={l}><span style={{display:"inline-block",width:10,height:10,borderRadius:99,background:c,marginRight:5}}/>{l}</span>)}
+        </div>
+      </Card>
+      <Card title={r.n} sub={`Indice de performance ${r.perf}/100 · marge ${r.m}`}>
+        <Pill color={RC[r.rec][1]}>{RC[r.rec][0]}</Pill>
+        <p style={{fontSize:14,lineHeight:1.5}}>{r.txt}</p>
+        {r.gain&&<div style={{fontWeight:900,fontSize:20,color:C.green,marginBottom:12}}>{r.gain}</div>}
+        <div style={{display:"flex",gap:8}}><Btn>Lancer la simulation</Btn><Btn kind="ghost">Plus tard</Btn></div>
+      </Card>
+    </div>
+  </div>);}
+
+/* ---------- 5. RH ---------- */
+const EQ=["Fruits & légumes","Frais","Caisses","Boucherie","Épicerie"];
+const JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam"];
+const PLAN_RH=[[4,4,4,5,5,6],[3,3,3,3,4,5],[5,4,4,5,7,8],[3,3,3,3,4,4],[4,4,3,4,4,5]];
+function RH(){
+  return(<div style={{display:"grid",gap:18}}>
+    <Agent name="RH">Le planning de la semaine est calé sur les flux prévus. Je propose 2 ajustements et 3 formations pour accompagner le bloc local. Les règles sociales sont vérifiées.</Agent>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,3fr) minmax(0,2fr)",gap:18}} className="g2">
+      <Card title="Planning de la semaine" sub="Collaborateurs présents par équipe et par jour">
+        <table style={{width:"100%",borderCollapse:"separate",borderSpacing:4,fontSize:13,textAlign:"center"}}>
+          <thead><tr><th/>{JOURS.map(j=><th key={j} style={{color:C.grey,fontSize:11}}>{j}</th>)}</tr></thead>
+          <tbody>{EQ.map((e,i)=>(<tr key={e}><td style={{textAlign:"left",fontWeight:700}}>{e}</td>
+            {PLAN_RH[i].map((v,k)=>(<td key={k} style={{background:v>=7?"#f6c4c4":v>=5?"#fbe6b8":"#e6f2e6",borderRadius:6,padding:"8px 0",fontWeight:800}}>{v}</td>))}</tr>))}</tbody>
+        </table>
+        <div style={{fontSize:12,color:C.grey,marginTop:8}}>Ajustement proposé : +1 caisse vendredi 17 h–19 h, −1 en épicerie le mardi.</div>
+      </Card>
+      <Card title="Compétences" sub="Couverture des compétences clés">
+        {[["Gestion produits frais locaux",58],["Relation producteurs",34],["Conseil client bio & santé",71],["Polyvalence caisse / rayon",82]].map(([l,v])=>(
+          <div key={l} style={{marginBottom:12}}><div style={{fontSize:13,display:"flex",justifyContent:"space-between"}}><span>{l}</span><b>{v} %</b></div>
+          <div style={{height:8,background:C.line,borderRadius:99}}><div style={{width:v+"%",height:8,borderRadius:99,background:v<50?C.red:C.green}}/></div></div>))}
+        <Pill color={C.red}>3 formations proposées « local & frais »</Pill>
+      </Card>
+    </div>
+  </div>);}
+
+/* ---------- 6. FINANCIER ---------- */
+function Finance(){
+  const lines=[["Marge brute","28,4 %","▲ +0,6 pt",1],["Casse & démarque","2,1 %","▼ −0,4 pt",1],["Masse salariale / CA","9,8 %","= stable",1],["Trésorerie fournisseurs","41 j","▲ +3 j",1]];
+  return(<div style={{display:"grid",gap:18}}>
+    <Agent name="FINANCE">Clôture hebdomadaire faite, rapprochement fournisseurs terminé, 2 écarts expliqués. Voici l'impact chiffré des 3 décisions du jour.</Agent>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:14}}>
+      {lines.map(l=><Kpi key={l[0]} label={l[0]} value={l[1]} delta={l[2]} good={!!l[3]}/>)}
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,3fr) minmax(0,2fr)",gap:18}} className="g2">
+      <Card title="Impact des décisions du jour sur le résultat trimestriel" sub="Hypothèses illustratives, en k€">
+        <Bars h={140} data={[["Bloc local",38,C.green],["Réappro. fruits",4,C.green],["Plan de masse",24,C.green],["Formation RH",6,C.amber]]} max={45}/>
+        <div style={{fontSize:13,marginTop:8}}>Total estimé : <b style={{color:C.green}}>+72 k€ / trimestre</b>, avant effet sur la fréquentation.</div>
+      </Card>
+      <Card title="Délégué aux agents" sub="Vous ne gardez que la décision">
+        {["Clôture & reporting hebdomadaire","Rapprochement factures fournisseurs","Suivi budget par rayon","Alertes d'écart > 2 %"].map(t=>(<div key={t} style={{padding:"9px 0",borderBottom:`1px solid ${C.line}`,fontSize:13,display:"flex",justifyContent:"space-between"}}><span>{t}</span><Pill color={C.green}>Auto</Pill></div>))}
+      </Card>
+    </div>
+  </div>);}
+
+/* ---------- APP ---------- */
+const TABS=[["accueil","Accueil","Le directeur entrepreneur"],["supply","Supply","Anticiper, pas subir"],["producteurs","Réseau de producteurs","Le local rentable pour tous"],["plan","Plan de masse","Réaménager son magasin"],["rh","Gestion RH","Les équipes au bon endroit"],["finance","Financier","Piloter sans saisir"]];
+function App(){
+  const [tab,setTab]=useState(location.hash.slice(1)||"accueil");
+  const [localOn,setLocalOn]=useState(false);
+  const cur=TABS.find(t=>t[0]===tab);
+  return(<div>
+    <style>{`@media(max-width:820px){.g2{grid-template-columns:1fr!important}}`}</style>
+    <header style={{background:C.red,color:"#fff",padding:"14px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+      <div style={{display:"flex",alignItems:"center",gap:14}}>
+        <div style={{fontWeight:900,fontSize:24,letterSpacing:-.5}}>auchan</div>
+        <div style={{width:1,height:28,background:"#ffffff88"}}/>
+        <div><div style={{fontWeight:800,fontSize:15}}>Le directeur de magasin augmenté</div>
+        <div style={{fontSize:12,opacity:.9}}>Saint-Martin-Boulogne (62) · Magasin n°1 déployé · Mois 9</div></div>
+      </div>
+      <div style={{fontSize:12,background:"#ffffff22",borderRadius:99,padding:"5px 12px"}}>Maquette illustrative · données fictives</div>
+    </header>
+    <nav style={{background:"#fff",borderBottom:`1px solid ${C.line}`,padding:"0 20px",display:"flex",gap:4,overflowX:"auto"}}>
+      {TABS.map(([id,l])=>(<button key={id} onClick={()=>setTab(id)} style={{border:"none",background:"none",padding:"14px 14px",fontWeight:tab===id?900:600,fontSize:14,color:tab===id?C.red:C.ink,borderBottom:`4px solid ${tab===id?C.red:"transparent"}`,whiteSpace:"nowrap"}}>{l}</button>))}
+    </nav>
+    <main style={{maxWidth:1180,margin:"0 auto",padding:"22px 24px 60px"}}>
+      <div style={{marginBottom:16}}><div style={{fontSize:26,fontWeight:900}}>{cur[1]}</div><div style={{color:C.grey,fontSize:14}}>{cur[2]}</div></div>
+      {tab==="accueil"&&<Accueil go={setTab} localOn={localOn}/>}
+      {tab==="supply"&&<Supply/>}
+      {tab==="producteurs"&&<Producteurs localOn={localOn} setLocalOn={setLocalOn}/>}
+      {tab==="plan"&&<Plan/>}
+      {tab==="rh"&&<RH/>}
+      {tab==="finance"&&<Finance/>}
+    </main>
+    <footer style={{textAlign:"center",fontSize:11,color:C.grey,paddingBottom:24}}>Vision à 3 ans pour le groupe · 9 mois pour un premier magasin entièrement déployé · Decathlon Pulse</footer>
+  </div>);}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
